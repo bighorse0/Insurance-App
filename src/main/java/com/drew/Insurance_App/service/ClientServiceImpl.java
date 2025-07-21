@@ -7,6 +7,7 @@ import com.drew.Insurance_App.dao.InsurancePolicyDao;
 import com.drew.Insurance_App.dto.ApiResponse;
 import com.drew.Insurance_App.dto.Claim;
 import com.drew.Insurance_App.dto.Client;
+import com.drew.Insurance_App.dto.ClientClaimSummary;
 import com.drew.Insurance_App.dto.InsurancePolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,12 @@ public class ClientServiceImpl implements ClientService {
 
     @Autowired
     private ApiResponse<List<Client>> findAllClientsApiResponse;
+
+    @Autowired
+    private ClaimService claimService;
+
+    @Autowired
+    private ApiResponse<List<ClientClaimSummary>> clientClaimSummaryApiResponse;
 
     @Override
     public ApiResponse<Client> insertClient(Client client, int policyId) {
@@ -53,15 +60,15 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ApiResponse<Client> getClientById(int clientId) {
         Client client = clientDao.getByClientId(clientId);
-
         if (Objects.isNull(client)) {
-            throw new RuntimeException("Claim not found");
+            clientApiResponse.setStatus(org.springframework.http.HttpStatus.NOT_FOUND.value());
+            clientApiResponse.setMessage("Client not found");
+            clientApiResponse.setData(null);
+            return clientApiResponse;
         }
-
-        clientApiResponse.setStatus(HttpStatus.ACCEPTED.value());
-        clientApiResponse.setMessage("Claim exists");
+        clientApiResponse.setStatus(org.springframework.http.HttpStatus.OK.value());
+        clientApiResponse.setMessage("Client exists");
         clientApiResponse.setData(client);
-
         return clientApiResponse;
     }
 
@@ -90,15 +97,16 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ApiResponse<Client> deleteClient(int clientId) {
         Client client = clientDao.getByClientId(clientId);
-
         if (Objects.isNull(client)) {
-            throw new RuntimeException("Client not found");
+            clientApiResponse.setStatus(org.springframework.http.HttpStatus.NOT_FOUND.value());
+            clientApiResponse.setMessage("Client not found");
+            clientApiResponse.setData(null);
+            return clientApiResponse;
         }
-
-        clientApiResponse.setStatus(HttpStatus.FOUND.value());
+        clientDao.deleteClientById(clientId);
+        clientApiResponse.setStatus(org.springframework.http.HttpStatus.OK.value());
         clientApiResponse.setMessage("Client deleted successfully");
         clientApiResponse.setData(client);
-
         return clientApiResponse;
     }
 
@@ -117,5 +125,36 @@ public class ClientServiceImpl implements ClientService {
         }
 
         return findAllClientsApiResponse;
+    }
+
+    @Override
+    public ApiResponse<List<Client>> getClientsByPolicyId(int policyId) {
+        List<Client> clients = clientDao.findByPolicyId(policyId);
+        if (clients == null || clients.isEmpty()) {
+            findAllClientsApiResponse.setStatus(HttpStatus.NOT_FOUND.value());
+            findAllClientsApiResponse.setMessage("No clients found for this policy");
+            findAllClientsApiResponse.setData(null);
+        } else {
+            findAllClientsApiResponse.setStatus(HttpStatus.FOUND.value());
+            findAllClientsApiResponse.setMessage("Clients found for policy");
+            findAllClientsApiResponse.setData(clients);
+        }
+        return findAllClientsApiResponse;
+    }
+
+    @Override
+    public ApiResponse<List<ClientClaimSummary>> getClaimCountPerClient() {
+        List<Client> clients = clientDao.displayAll();
+        List<ClientClaimSummary> summaries = new java.util.ArrayList<>();
+        for (Client client : clients) {
+            int policyId = client.getInsurancePolicy().getInsurancePolicyId();
+            List<Integer> policyIds = java.util.Collections.singletonList(policyId);
+            int claimCount = claimService.getClaimsByPolicyIds(policyIds).getData() != null ? claimService.getClaimsByPolicyIds(policyIds).getData().size() : 0;
+            summaries.add(new ClientClaimSummary(client.getClientId(), client.getClientName(), claimCount));
+        }
+        clientClaimSummaryApiResponse.setStatus(org.springframework.http.HttpStatus.OK.value());
+        clientClaimSummaryApiResponse.setMessage("Claim count per client");
+        clientClaimSummaryApiResponse.setData(summaries);
+        return clientClaimSummaryApiResponse;
     }
 }

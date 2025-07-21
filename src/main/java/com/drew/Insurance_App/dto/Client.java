@@ -3,6 +3,7 @@ package com.drew.Insurance_App.dto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Getter
@@ -12,16 +13,18 @@ public class Client {
     @Column(name = "clientId")
     private int clientId;
 
-    @Column(name = "clientName")
+    @NotBlank(message = "Client name is required")
     private String clientName;
 
-    @Column(name = "clientDateOfBirth")
+    @NotBlank(message = "Client date of birth is required")
     private String clientDateOfBirth;
 
-    @Column(name = "clientAddress")
+    @NotBlank(message = "Client address is required")
     private String clientAddress;
 
-    @Column(name = "clientContactInformation")
+    @NotNull(message = "Client contact information is required")
+    @Min(value = 1000000000L, message = "Contact info must be a 10-digit number")
+    @Max(value = 9999999999L, message = "Contact info must be a 10-digit number")
     private long clientContactInformation;
 
     @ManyToOne

@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "insurancePolicy")
@@ -16,21 +17,21 @@ public class InsurancePolicy {
     @Column(name = "policyId")
     private int insurancePolicyId;
 
-    @Column(name = "policyNumber")
+    @NotBlank(message = "Policy number is required")
     private String insurancePolicyNumber;
 
-    @Column(name = "policyType")
+    @NotBlank(message = "Policy type is required")
     private String insurancePolicyType;
 
-    @Column(name = "policyCoverageAmount")
+    @Min(value = 1, message = "Coverage amount must be positive")
     private long insurancePolicyCoverageAmount;
 
-    @Column(name = "policyPremium")
+    @NotBlank(message = "Policy premium is required")
     private String insurancePolicyPremium;
 
-    @Column(name = "policyStartDate")
+    @NotBlank(message = "Policy start date is required")
     private String insurancePolicyStartDate;
 
-    @Column(name = "policyEndDate")
+    @NotBlank(message = "Policy end date is required")
     private String insurancePolicyEndDate;
 }

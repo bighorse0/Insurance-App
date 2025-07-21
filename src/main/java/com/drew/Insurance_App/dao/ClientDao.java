@@ -46,4 +46,8 @@ public class ClientDao {
     public List<Client> displayAll() {
         return clientRepository.findAll();
     }
+
+    public List<Client> findByPolicyId(int policyId) {
+        return clientRepository.findByInsurancePolicy_InsurancePolicyId(policyId);
+    }
 }

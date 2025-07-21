@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import jakarta.validation.constraints.*;
 
 @Entity
 
@@ -15,22 +16,26 @@ public class Claim {
     @Column(name = "claimId")
     private int claimId;
 
-    @Column(name = "claimNumber")
+    @NotNull(message = "Claim number is required")
     private String claimNumber;
 
-    @Column(name = "claimDescription")
+    @NotNull(message = "Claim description is required")
     private String claimDescription;
 
-    @Column(name = "claimDate")
+    @NotNull(message = "Claim date is required")
     private Date claimDate;
 
-    @Column(name = "claimStatus")
+    @NotNull(message = "Claim status is required")
     private String claimStatus;
 
-    @Column(name = "claimAmount")
+    @Min(value = 0, message = "Claim amount must be non-negative")
     private double claimAmount;
 
-    @OneToOne
+    private boolean isDeleted = false;
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+
+    @ManyToOne
     @JoinColumn(name = "policyId")
     private InsurancePolicy insurancePolicy;
 }
